@@ -23,6 +23,11 @@ def process_pdf(pdf_file, openai_api_key):
         return "Please upload a PDF file first."
 
     os.environ["OPENAI_API_KEY"] = openai_api_key
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(pdf_file)
+        tmp_path = tmp.name
+    
     loader = PyMuPDFLoader(pdf_file.name)
     documents = loader.load()
 
