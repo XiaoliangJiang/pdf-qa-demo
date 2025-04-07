@@ -1,19 +1,22 @@
+# ✅ Fixed version of app.py (Hugging Face compatible)
+# Uses langchain-community and fixes import errors
+
 import os
 import gradio as gr
 import csv
 
-# LangChain components
+# ✅ Use this version of langchain-community loader
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 
 qa_chain = None
 source_docs = []
 
-# Step 1: Load and index PDF
+# Step 1: Load PDF and build retriever
 def process_pdf(pdf_file, openai_api_key):
     global qa_chain, source_docs
     if not pdf_file:
@@ -63,11 +66,11 @@ def save_feedback(user_input, answer, feedback):
 
 # Gradio UI
 with gr.Blocks() as demo:
-    gr.Markdown("# 📄 PDF Q&A Assistant (RAG + GPT)\nUpload your PDF and ask anything!")
+    gr.Markdown("# 📄 PDF Q&A Assistant (RAG + GPT)")
 
     with gr.Row():
         pdf_file = gr.File(label="Upload PDF", type="binary")
-        openai_key_box = gr.Textbox(label="🔐 OpenAI API Key (kept local)", type="password")
+        openai_key_box = gr.Textbox(label="🔐 OpenAI API Key", type="password")
         load_button = gr.Button("📚 Load Document")
     load_status = gr.Textbox(label="Status")
 
@@ -94,4 +97,5 @@ with gr.Blocks() as demo:
     good_btn.click(fn=save_feedback, inputs=[question_input, answer_output, gr.Textbox(value="👍")], outputs=[feedback_status])
     bad_btn.click(fn=save_feedback, inputs=[question_input, answer_output, gr.Textbox(value="👎")], outputs=[feedback_status])
 
+# Launch
 demo.launch()
