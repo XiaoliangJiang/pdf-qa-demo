@@ -3,4 +3,4 @@ openai
 faiss-cpu
 tiktoken
 PyMuPDF
-gradio
+gradiolangchain-community 
