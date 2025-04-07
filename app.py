@@ -4,6 +4,8 @@
 import os
 import gradio as gr
 import csv
+import tempfile
+
 
 # ✅ Use this version of langchain-community loader
 from langchain_community.document_loaders import PyMuPDFLoader
