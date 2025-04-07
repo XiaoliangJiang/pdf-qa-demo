@@ -12,16 +12,15 @@ from transformers import pipeline
 qa_chain = None
 source_docs = None
 
-
 def process_pdf(pdf_file, openai_api_key, model_choice):
     global qa_chain, source_docs
     if not pdf_file:
         return "Please upload a PDF file first.", "", ""
 
     # Save uploaded file to disk properly
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp_path = tmp.name
-        tmp.write(pdf_file.read())
+    tmp_path = os.path.join(tempfile.gettempdir(), pdf_file.name)
+    with open(tmp_path, "wb") as f:
+        f.write(pdf_file.read())
 
     loader = PyMuPDFLoader(tmp_path)
     documents = loader.load()
@@ -41,7 +40,6 @@ def process_pdf(pdf_file, openai_api_key, model_choice):
 
     return "Document processed. You can now ask questions!", "", ""
 
-
 def ask_question(question):
     if qa_chain is None:
         return "Please upload and load a PDF document first.", "", ""
@@ -53,7 +51,6 @@ def ask_question(question):
     else:
         result = qa_chain.run(question)
         return result, "", ""
-
 
 def build_ui():
     with gr.Blocks() as demo:
@@ -89,11 +86,11 @@ def build_ui():
 
     return demo
 
-
 app = build_ui()
 
 if __name__ == "__main__":
     app.launch()
+
 
 # # ✅ Fixed version of app.py (Hugging Face compatible)
 # # Uses langchain-community and fixes import errors
