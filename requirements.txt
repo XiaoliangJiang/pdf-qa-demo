@@ -1,6 +1,7 @@
 langchain
+langchain-community
 openai
 faiss-cpu
 tiktoken
 PyMuPDF
-gradiolangchain-community 
+gradio
