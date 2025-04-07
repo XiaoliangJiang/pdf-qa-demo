@@ -17,10 +17,10 @@ def process_pdf(pdf_file, openai_api_key, model_choice):
     if not pdf_file:
         return "Please upload a PDF file first.", "", ""
 
-    # Save uploaded file to disk properly
-    tmp_path = os.path.join(tempfile.gettempdir(), pdf_file.name)
-    with open(tmp_path, "wb") as f:
-        f.write(pdf_file.read())
+    # Save uploaded file to a unique temporary file path
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(pdf_file.read())
+        tmp_path = tmp.name
 
     loader = PyMuPDFLoader(tmp_path)
     documents = loader.load()
