@@ -4,5 +4,6 @@ openai
 faiss-cpu
 tiktoken
 PyMuPDF
-gradio>=4.0.0
+gradio>=4.44.1
 transformers
+torch

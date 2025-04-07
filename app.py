@@ -18,6 +18,7 @@ def process_pdf(pdf_file, openai_api_key, model_choice):
         return "Please upload a PDF file first.", "", ""
 
     # Save uploaded file to a unique temporary file path
+    pdf_file.seek(0)  # Ensure we read from the beginning
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(pdf_file.read())
         tmp_path = tmp.name
