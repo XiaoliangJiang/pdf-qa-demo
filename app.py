@@ -5,7 +5,6 @@ from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains.question_answering import load_qa_chain
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
 from transformers import pipeline
@@ -13,13 +12,14 @@ from transformers import pipeline
 qa_chain = None
 source_docs = None
 
+
 def process_pdf(pdf_file, openai_api_key, model_choice):
     global qa_chain, source_docs
     if not pdf_file:
         return "Please upload a PDF file first.", "", ""
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp.write(pdf_file)
+        tmp.write(pdf_file.read())  # Fixed: read bytes from uploaded file
         tmp_path = tmp.name
 
     loader = PyMuPDFLoader(tmp_path)
@@ -35,25 +35,24 @@ def process_pdf(pdf_file, openai_api_key, model_choice):
         llm = ChatOpenAI(temperature=0)
         qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=vectorstore.as_retriever())
     else:
-        # Use local model (e.g., distilbert)
         qa_chain = pipeline("question-answering", model="distilbert-base-uncased-distilled-squad")
         source_docs = docs
 
     return "Document processed. You can now ask questions!", "", ""
+
 
 def ask_question(question):
     if qa_chain is None:
         return "Please upload and load a PDF document first.", "", ""
 
     if isinstance(qa_chain, pipeline):
-        # Local model mode
         context = "\n\n".join(doc.page_content for doc in source_docs[:5])
         result = qa_chain(question=question, context=context)
         return result['answer'], "", ""
     else:
-        # OpenAI mode
         result = qa_chain.run(question)
         return result, "", ""
+
 
 def build_ui():
     with gr.Blocks() as demo:
@@ -66,8 +65,8 @@ def build_ui():
 
         with gr.Row():
             pdf_file = gr.File(label="Upload PDF", file_types=[".pdf"])
-            api_key = gr.Textbox(label="🔑 OpenAI API Key", type="password")
             model_choice = gr.Dropdown(label="Choose Model", choices=["OpenAI GPT", "Local Model"], value="OpenAI GPT")
+            api_key = gr.Textbox(label="🔑 OpenAI API Key (only needed for GPT)", type="password", visible=True)
             load_button = gr.Button("📚 Load Document")
 
         status = gr.Textbox(label="Status")
@@ -79,10 +78,16 @@ def build_ui():
         answer = gr.Textbox(label="Answer")
         sources = gr.Textbox(label="Sources")
 
+        def toggle_api_visibility(model):
+            return gr.update(visible=(model == "OpenAI GPT"))
+
+        model_choice.change(fn=toggle_api_visibility, inputs=model_choice, outputs=api_key)
+
         load_button.click(fn=process_pdf, inputs=[pdf_file, api_key, model_choice], outputs=[status, answer, sources])
         ask_button.click(fn=ask_question, inputs=[question], outputs=[answer, sources])
 
     return demo
+
 
 app = build_ui()
 
