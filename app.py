@@ -30,7 +30,7 @@ def process_pdf(pdf_file, openai_api_key):
         tmp.write(pdf_file)
         tmp_path = tmp.name
     
-    loader = PyMuPDFLoader(pdf_file.name)
+    loader = PyMuPDFLoader(tmp_path)
     documents = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
